@@ -134,10 +134,12 @@ function App() {
 
   useEffect(() => {
     fetchWorkTimeData(days)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days])
 
   useEffect(() => {
     fetchWorkTimeData(days, startDate, endDate)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days, startDate, endDate])
 
   const fetchWorkTimeData = async (days, startDate, endDate) => {
@@ -349,10 +351,6 @@ function dayOfYear(date) {
   const diff = date - start
   const oneDay = 1000 * 60 * 60 * 24
   return Math.floor(diff / oneDay)
-}
-
-function daysInYear(year) {
-  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0) ? 366 : 365
 }
 
 export default App
