@@ -9,28 +9,125 @@ import "react-datepicker/dist/react-datepicker.css"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import moment from "moment-timezone"
+import { Line } from "react-chartjs-2"
+
+import { Pie } from "react-chartjs-2"
 
 function App() {
   const [days, setDays] = useState(7)
   const [workTimeData, setWorkTimeData] = useState(null)
 
   const [hourProgress, setHourProgress] = useState(0)
-  const [dayProgress, setDayProgress] = useState(0)
+  const [monthProgress, setMonthProgress] = useState(0)
   const [yearProgress, setYearProgress] = useState(0)
 
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
+  const [dailyLogs, setDailyLogs] = useState({})
+  const [taskPercentageData, setTaskPercentageData] = useState(null)
+  const [cumulativeTimeData, setCumulativeTimeData] = useState(null)
+
+  const generateCumulativeTimeData = (total) => {
+    const orderedData = Object.entries(total)
+      .map(([date, workTime]) => {
+        const d = new Date(date)
+        const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()]
+        return {
+          date: `${date} (${weekday})`,
+          workTime,
+        }
+      })
+      .sort((a, b) => a.date.localeCompare(b.date))
+
+    const orderedLabels = orderedData.map((d) => d.date)
+    const orderedValues = orderedData.map((d) => d.workTime)
+
+    let cumulativeValues = []
+    orderedValues.reduce((sum, value) => {
+      sum += value
+      cumulativeValues.push(sum)
+      return sum
+    }, 0)
+
+    const hours = cumulativeValues.map((value) => (value / 3600).toFixed(2))
+
+    return {
+      labels: orderedLabels,
+      datasets: [
+        {
+          label: "Cumulative Time",
+          data: hours,
+          borderColor: "#4BC0C0",
+          backgroundColor: "rgba(75,192,192,0.1)",
+        },
+      ],
+    }
+  }
+
+  const generateTaskPercentageData = (logs) => {
+    const taskMap = new Map()
+
+    for (const tasks of Object.values(logs)) {
+      tasks.forEach((task) => {
+        const key = task.project + " - " + task.task
+        taskMap.set(key, (taskMap.get(key) || 0) + task.duration)
+      })
+    }
+
+    const labels = Array.from(taskMap.keys())
+    const values = Array.from(taskMap.values())
+    const total = values.reduce((sum, val) => sum + val, 0)
+    const percentages = values.map((value) => ((value * 100) / total).toFixed(2))
+
+    const labelsWithTotalHours = labels.map((label, index) => {
+      const hours = (values[index] / 3600).toFixed(2)
+      return `${label} (${hours}h)`
+    })
+
+    return {
+      labels: labelsWithTotalHours,
+      datasets: [
+        {
+          data: percentages,
+          backgroundColor: [
+            // Add color for each slice of the pie chart
+            "#FF6384",
+            "#36A2EB",
+            "#FFCE56",
+            "#4BC0C0",
+            "#9966FF",
+            "#FF9F40",
+          ],
+        },
+      ],
+    }
+  }
+
+  const calculateProgress = (now) => {
+    const hourProgress = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / (24 * 3600)
+
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+    const monthProgress = ((now.getDate() - 1) * 24 * 3600 + now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / (daysInMonth * 24 * 3600)
+
+    const daysInYear = now.getFullYear() % 4 === 0 && (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0) ? 366 : 365
+    const yearProgress = (dayOfYear(now) * 24 * 3600 + now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / (daysInYear * 24 * 3600)
+
+    return {
+      hourProgress,
+      monthProgress,
+      yearProgress,
+    }
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date()
-      const yearProgress = dayOfYear(now) / daysInYear(now.getFullYear())
-      const dayProgress = (now.getDate() - 1 + now.getHours() / 24 + now.getMinutes() / 1440 + now.getSeconds() / 86400) / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-      const hourProgress = (now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600) / 24
-      setHourProgress(hourProgress)
-      setDayProgress(dayProgress)
-      setYearProgress(yearProgress)
-    }, 1000)
+      const progress = calculateProgress(now)
+
+      setHourProgress(progress.hourProgress)
+      setMonthProgress(progress.monthProgress)
+      setYearProgress(progress.yearProgress)
+    }, 100)
 
     return () => clearInterval(interval)
   }, [])
@@ -59,9 +156,15 @@ function App() {
 
     if (code !== 0) {
       toast.error("Failed to fetch work time data", data)
+      return
     }
+    setDailyLogs(data.logs)
+    const lineChartData = generateCumulativeTimeData(data.total)
+    setCumulativeTimeData(lineChartData)
+    const pieChartData = generateTaskPercentageData(data.logs)
+    setTaskPercentageData(pieChartData)
 
-    const orderedData = Object.entries(data)
+    const orderedData = Object.entries(data.total)
       .map(([date, workTime]) => {
         const d = new Date(date)
         const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()]
@@ -96,6 +199,31 @@ function App() {
     setDays(parseInt(e.target.value))
   }
 
+  const renderTaskPercentageChart = () => {
+    if (!taskPercentageData) return null
+    return <Pie data={taskPercentageData} />
+  }
+
+  const renderCumulativeTimeChart = () => {
+    if (!cumulativeTimeData) return null
+
+    const options = {
+      scales: {
+        y: {
+          type: "linear",
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+        x: {
+          type: "category",
+        },
+      },
+    }
+
+    return <Line data={cumulativeTimeData} options={options} />
+  }
+
   const renderWorkTimeChart = () => {
     if (!workTimeData) return null
 
@@ -118,6 +246,41 @@ function App() {
     return <Bar data={workTimeData} options={options} />
   }
 
+  const renderDailyLogs = () => {
+    return (
+      <table className="daily-logs">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Project</th>
+            <th>Task</th>
+            <th>Start Time</th>
+            <th>Duration(m)</th>
+            <th>Duration(h)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(dailyLogs).map(([date, logs]) =>
+            logs.map((log, index) => (
+              <tr key={`${date}-${index}`}>
+                {index === 0 && (
+                  <td rowSpan={logs.length}>
+                    {date} ({logs.length} log{logs.length > 1 ? "s" : ""})
+                  </td>
+                )}
+                <td>{log.project}</td>
+                <td>{log.task}</td>
+                <td>{log.start}</td>
+                <td>{(log.duration / 60).toFixed(0)} m</td>
+                <td>{(log.duration / 3600).toFixed(1)} h</td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    )
+  }
+
   return (
     <div className="App">
       <div className="container">
@@ -125,23 +288,23 @@ function App() {
         {/* <h1 className="title">Time Progress</h1> */}
         <div className="progress-bars">
           <div className="progress-bar hour-progress">
-            <div className="label">HOUR</div>
+            <div className="label">Day</div>
             <div className="bar">
               <div className="filled" style={{ width: hourProgress * 100 + "%" }} />
             </div>
             <div className="details">
-              <div className="value">{(hourProgress * 24).toFixed(2)}h</div>
-              <div className="percentage">{(hourProgress * 100).toFixed(2)}%</div>
+              <div className="value">{(hourProgress * 24).toFixed(1)}h</div>
+              <div className="percentage">{(hourProgress * 100).toFixed(4)}%</div>
             </div>
           </div>
           <div className="progress-bar day-progress">
-            <div className="label">DAY</div>
+            <div className="label">Month</div>
             <div className="bar">
-              <div className="filled" style={{ width: dayProgress * 100 + "%" }} />
+              <div className="filled" style={{ width: monthProgress * 100 + "%" }} />
             </div>
             <div className="details">
-              <div className="value">{(dayProgress * 24).toFixed(2)}h</div>
-              <div className="percentage">{(dayProgress * 100).toFixed(2)}%</div>
+              <div className="value">{new Date().getDate()}day</div>
+              <div className="percentage">{(monthProgress * 100).toFixed(2)}%</div>
             </div>
           </div>
           <div className="progress-bar year-progress">
@@ -173,6 +336,9 @@ function App() {
         </div>
 
         {renderWorkTimeChart()}
+        <div className="cumulative-time-chart">{renderCumulativeTimeChart()}</div>
+        {renderDailyLogs()}
+        {renderTaskPercentageChart()}
       </div>
     </div>
   )
