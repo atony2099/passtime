@@ -1,0 +1,165 @@
+body {
+  background-color: #f0f0f0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.App {
+  font-family: 'Roboto', Arial, sans-serif;
+
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  width: 66.67vw; /* set width to 2/3 of viewport width */
+  margin: 0 auto;
+  text-align: center;
+  background-color: #fff;
+  padding: 100px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+
+
+.title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #555;
+}
+
+.bar {
+  background-color: #eee;
+  height: 20px;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.filled {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 10px;
+}
+
+.percentage {
+  font-size: 1rem;
+  font-weight: 300;
+  color: #555;
+}
+
+.hour-progress .filled {
+  background-color: #4caf50;
+}
+
+.day-progress .filled {
+  background-color: #2196f3;
+}
+
+.year-progress .filled {
+  background-color: #ff9800;
+}
+
+/* Add the following styles at the end of the file */
+
+.work-time-chart {
+  display: flex;
+  justify-content:
+  space-around;
+  margin-top: 30px;
+}
+
+.work-time-bar {
+  position: relative;
+  width: 30px;
+  margin-bottom: 10px;
+}
+
+.work-time-filled {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  background-color: #4caf50;
+}
+
+.work-time-label {
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 5px;
+}
+
+
+.filled {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 10px;
+  transition: width 0.5s ease; /* add a transition */
+}
+
+.details {
+  display: flex;
+  flex-direction: horizontal;
+  justify-content: center;
+  align-items: center;
+  /* margin-top: 10px; */
+}
+
+.value {
+  font-size: 0.8rem;
+
+  color: #333;
+  /* margin-bottom: 5px; */
+}
+
+.percentage {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #555;
+  margin-left: 10px;
+}
+
+.date-select-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.date-select-item {
+  display: flex;
+  flex-direction: row;
+  align-items: space-between;
+}
+
