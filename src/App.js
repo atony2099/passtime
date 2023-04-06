@@ -143,8 +143,11 @@ function App() {
   }, [days, startDate, endDate])
 
   const fetchWorkTimeData = async (days, startDate, endDate) => {
-    let url = `${process.env.REACT_APP_API_URL}/api/day/${days}`
+    if (isNaN(days)) {
+      return
+    }
 
+    let url = `${process.env.REACT_APP_API_URL}/api/day/${days}`
     if (startDate && endDate) {
       const start = moment(startDate).tz("Asia/Shanghai").format("YYYY-MM-DD")
       const end = moment(endDate).tz("Asia/Shanghai").format("YYYY-MM-DD")
