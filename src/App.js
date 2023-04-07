@@ -10,6 +10,7 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import moment from "moment-timezone"
 import { Line } from "react-chartjs-2"
+import Log from "./log"
 
 import { Pie } from "react-chartjs-2"
 
@@ -133,26 +134,30 @@ function App() {
   }, [])
 
   useEffect(() => {
-    fetchWorkTimeData(days)
+    try {
+      fetchWorkTimeData(days)
+    } catch (error) {
+      console.log(error, "--")
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days])
 
   useEffect(() => {
-    fetchWorkTimeData(days, startDate, endDate)
+    fetchWorkTimeData(0, startDate, endDate)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [days, startDate, endDate])
+  }, [startDate, endDate])
 
   const fetchWorkTimeData = async (days, startDate, endDate) => {
-    if (isNaN(days)) {
-      return
-    }
-
-    let url = `${process.env.REACT_APP_API_URL}/api/day/${days}`
-    if (startDate && endDate) {
+    let url = ""
+    if (days === 0 && startDate && endDate) {
       const start = moment(startDate).tz("Asia/Shanghai").format("YYYY-MM-DD")
       const end = moment(endDate).tz("Asia/Shanghai").format("YYYY-MM-DD")
-
       url = `${process.env.REACT_APP_API_URL}/api/day/range?start=${start}&end=${end}`
+    } else if (days !== 0 && !isNaN(days)) {
+      url = `${process.env.REACT_APP_API_URL}/api/day/${days}`
+    }
+    if (!url) {
+      return
     }
 
     const response = await fetch(url, {})
@@ -251,46 +256,10 @@ function App() {
     return <Bar data={workTimeData} options={options} />
   }
 
-  const renderDailyLogs = () => {
-    return (
-      <table className="daily-logs">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Project</th>
-            <th>Task</th>
-            <th>Start Time</th>
-            <th>Duration(m)</th>
-            <th>Duration(h)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.entries(dailyLogs).map(([date, logs]) =>
-            logs.map((log, index) => (
-              <tr key={`${date}-${index}`}>
-                {index === 0 && (
-                  <td rowSpan={logs.length}>
-                    {date} ({logs.length} log{logs.length > 1 ? "s" : ""})
-                  </td>
-                )}
-                <td>{log.project}</td>
-                <td>{log.task}</td>
-                <td>{log.start}</td>
-                <td>{(log.duration / 60).toFixed(0)} m</td>
-                <td>{(log.duration / 3600).toFixed(1)} h</td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    )
-  }
-
   return (
     <div className="App">
-      <div className="container">
+      <div className="container container-left">
         <ToastContainer />
-        {/* <h1 className="title">Time Progress</h1> */}
         <div className="progress-bars">
           <div className="progress-bar hour-progress">
             <div className="label">Day</div>
@@ -324,6 +293,11 @@ function App() {
           </div>
         </div>
 
+        <Log dailyLogs={dailyLogs} />
+      </div>
+      {/* <div className="space"></div> */}
+      <div className="container container-right">
+        <ToastContainer />
         <div>
           <label htmlFor="days">Last n days:</label>
           <input type="number" id="days" value={days} onChange={handleDaysChange} />
@@ -342,7 +316,7 @@ function App() {
 
         {renderWorkTimeChart()}
         <div className="cumulative-time-chart">{renderCumulativeTimeChart()}</div>
-        {renderDailyLogs()}
+
         {renderTaskPercentageChart()}
       </div>
     </div>

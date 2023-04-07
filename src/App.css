@@ -1,33 +1,45 @@
-body {
-  background-color: #f0f0f0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
 .App {
   font-family: 'Roboto', Arial, sans-serif;
 
   margin: 0;
   padding: 0;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  /* justify-content: space-between; */
+  /* align-items: center; */
   height: 100vh;
+
+  gap: 30px;
+  column-gap: 30px;
+
 }
 
+
+
 .container {
-  width: 66.67vw; /* set width to 2/3 of viewport width */
+
   margin: 0 auto;
   text-align: center;
   background-color: #fff;
-  padding: 100px;
-  border-radius: 10px;
+  padding: 50px;
+  border-radius: 30px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   overflow-y: scroll; /* add this line to enable vertical scrolling */
   max-height: 90vh; /* add this line to limit the container height */
+
+}
+
+.container-left {
+  flex: 1;
+
+}
+
+
+.container-right {
+  flex: 1;
+  padding: 50px;
+
+ 
+
 }
 
 
@@ -165,20 +177,3 @@ body {
   align-items: space-between;
 }
 
-
-.daily-logs {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.daily-logs th,
-.daily-logs td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: left;
-}
-
-.daily-logs th {
-  background-color: #f2f2f2;
-  font-weight: bold;
-}
