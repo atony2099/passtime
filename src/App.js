@@ -15,7 +15,7 @@ import Log from "./log"
 import { Pie } from "react-chartjs-2"
 
 function App() {
-  const [days, setDays] = useState(7)
+  const [days, setDays] = useState(10)
   const [workTimeData, setWorkTimeData] = useState(null)
 
   const [hourProgress, setHourProgress] = useState(0)
