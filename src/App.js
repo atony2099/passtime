@@ -16,6 +16,8 @@ import { Pie } from "react-chartjs-2"
 
 function App() {
   const [days, setDays] = useState(10)
+  const [dailyDays, setDailyDays] = useState(1)
+
   const [workTimeData, setWorkTimeData] = useState(null)
 
   const [hourProgress, setHourProgress] = useState(0)
@@ -27,6 +29,8 @@ function App() {
   const [dailyLogs, setDailyLogs] = useState({})
   const [taskPercentageData, setTaskPercentageData] = useState(null)
   const [cumulativeTimeData, setCumulativeTimeData] = useState(null)
+
+  const [cumulativeDaily, setCumulativeDaily] = useState(null)
 
   const generateCumulativeTimeData = (total) => {
     const orderedData = Object.entries(total)
@@ -147,6 +151,52 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate])
 
+  useEffect(() => {
+    fetchDailyDay(dailyDays)
+  }, [dailyDays])
+
+  const fetchDailyDay = async (days) => {
+    if (days <= 0 || isNaN(days)) {
+      return
+    }
+    var url = `${process.env.REACT_APP_API_URL}/api/cumulative/${days}`
+    const response = await fetch(url, {})
+    const { code, data } = await response.json()
+    if (code !== 0) {
+      toast.error("Failed to fetch work time data", data)
+      return
+    }
+
+    if (!Array.isArray(data) || data.length <= 0) {
+      return
+    }
+
+    const orderedLabels = data.map((d) => d.end_time)
+    let hours = data.map((d) => d.total)
+
+    let lastTotal = hours.slice(-1)[0]
+
+    if (lastTotal >= 60 * 60) {
+      hours = hours.map((value) => (value / 60 / 60).toFixed(1))
+    } else {
+      hours = hours.map((value) => (value / 60).toFixed(1))
+    }
+
+    const renderData = {
+      labels: orderedLabels,
+      datasets: [
+        {
+          label: "Cumulative Time",
+          data: hours,
+          borderColor: "red",
+          backgroundColor: "rgba(75,192,192,0.1)",
+        },
+      ],
+    }
+
+    setCumulativeDaily(renderData)
+  }
+
   const fetchWorkTimeData = async (days, startDate, endDate) => {
     let url = ""
     if (days === 0 && startDate && endDate) {
@@ -209,6 +259,10 @@ function App() {
     setDays(parseInt(e.target.value))
   }
 
+  const handlDailyDaysChange = (e) => {
+    setDailyDays(parseInt(e.target.value))
+  }
+
   const renderTaskPercentageChart = () => {
     if (!taskPercentageData) return null
     return <Pie data={taskPercentageData} />
@@ -232,6 +286,24 @@ function App() {
     }
 
     return <Line data={cumulativeTimeData} options={options} />
+  }
+
+  const renderDailyCumu = () => {
+    const options = {
+      scales: {
+        y: {
+          type: "linear",
+          ticks: {
+            beginAtZero: true,
+          },
+        },
+        x: {
+          type: "category",
+        },
+      },
+    }
+
+    return cumulativeDaily ? <Line data={cumulativeDaily} options={options} /> : null
   }
 
   const renderWorkTimeChart = () => {
@@ -292,7 +364,12 @@ function App() {
             </div>
           </div>
         </div>
+        <div>
+          <label htmlFor="days">Last n days:</label>
+          <input type="number" id="days" value={dailyDays} onChange={handlDailyDaysChange} />
+        </div>
 
+        {renderDailyCumu()}
         <Log dailyLogs={dailyLogs} />
       </div>
       {/* <div className="space"></div> */}
