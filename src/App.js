@@ -124,10 +124,6 @@ function App() {
     }
   }
 
-  const refetchData = async () => {
-    await fetchWorkTimeData(days, startDate, endDate)
-    fetchDailyDay(dailyDays)
-  }
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date()
@@ -138,10 +134,10 @@ function App() {
       setYearProgress(progress.yearProgress)
     }, 100)
 
-    const handleVisibilityChange = () => {
+    const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
-        // todo
-        refetchData()
+        await fetchWorkTimeData(days, startDate, endDate)
+        fetchDailyDay(dailyDays)
       }
       // console.log("visibility changed")
     }
@@ -149,9 +145,9 @@ function App() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
-
       clearInterval(interval)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
