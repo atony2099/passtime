@@ -15,7 +15,7 @@ import Log from "./log"
 import { Pie } from "react-chartjs-2"
 
 function App() {
-  const [days, setDays] = useState(10)
+  const [days, setDays] = useState(7)
   const [dailyDays, setDailyDays] = useState(1)
 
   const [workTimeData, setWorkTimeData] = useState(null)
@@ -124,6 +124,10 @@ function App() {
     }
   }
 
+  const refetchData = async () => {
+    await fetchWorkTimeData(days, startDate, endDate)
+    fetchDailyDay(dailyDays)
+  }
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date()
@@ -134,7 +138,20 @@ function App() {
       setYearProgress(progress.yearProgress)
     }, 100)
 
-    return () => clearInterval(interval)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        // todo
+        refetchData()
+      }
+      // console.log("visibility changed")
+    }
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+
+      clearInterval(interval)
+    }
   }, [])
 
   useEffect(() => {
