@@ -1,0 +1,52 @@
+.progress-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.progress-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #555;
+}
+
+.bar {
+  background-color: #eee;
+  height: 20px;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.filled {
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 10px;
+}
+
+.percentage {
+  font-size: 1rem;
+  font-weight: 300;
+  color: #555;
+}
+
+.hour-progress .filled {
+  background-color: #4caf50;
+}
+
+.day-progress .filled {
+  background-color: #2196f3;
+}
+
+.year-progress .filled {
+  background-color: #ff9800;
+}

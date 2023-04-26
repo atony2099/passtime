@@ -3,33 +3,28 @@ import { Bar } from "react-chartjs-2"
 import "./App.css"
 import { LinearScale, CategoryScale, BarElement } from "chart.js"
 import Chart from "chart.js/auto"
-
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
 import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import moment from "moment-timezone"
 import { Line } from "react-chartjs-2"
-import Log from "./log"
 
 import { Pie } from "react-chartjs-2"
+
+import Log from "./components/log"
+import ProgressBar from "./components/progress"
 
 function App() {
   const [days, setDays] = useState(7)
   const [dailyDays, setDailyDays] = useState(1)
 
   const [workTimeData, setWorkTimeData] = useState(null)
-
-  const [hourProgress, setHourProgress] = useState(0)
-  const [monthProgress, setMonthProgress] = useState(0)
-  const [yearProgress, setYearProgress] = useState(0)
-
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [dailyLogs, setDailyLogs] = useState({})
   const [taskPercentageData, setTaskPercentageData] = useState(null)
   const [cumulativeTimeData, setCumulativeTimeData] = useState(null)
-
   const [cumulativeDaily, setCumulativeDaily] = useState(null)
 
   const generateCumulativeTimeData = (total) => {
@@ -108,32 +103,7 @@ function App() {
     }
   }
 
-  const calculateProgress = (now) => {
-    const hourProgress = (now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / (24 * 3600)
-
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
-    const monthProgress = ((now.getDate() - 1) * 24 * 3600 + now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / (daysInMonth * 24 * 3600)
-
-    const daysInYear = now.getFullYear() % 4 === 0 && (now.getFullYear() % 100 !== 0 || now.getFullYear() % 400 === 0) ? 366 : 365
-    const yearProgress = (dayOfYear(now) * 24 * 3600 + now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()) / (daysInYear * 24 * 3600)
-
-    return {
-      hourProgress,
-      monthProgress,
-      yearProgress,
-    }
-  }
-
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date()
-      const progress = calculateProgress(now)
-
-      setHourProgress(progress.hourProgress)
-      setMonthProgress(progress.monthProgress)
-      setYearProgress(progress.yearProgress)
-    }, 100)
-
     const handleVisibilityChange = async () => {
       if (document.visibilityState === "visible") {
         await fetchWorkTimeData(days, startDate, endDate)
@@ -145,7 +115,6 @@ function App() {
 
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange)
-      clearInterval(interval)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -345,43 +314,11 @@ function App() {
     <div className="App">
       <div className="container container-left">
         <ToastContainer />
-        <div className="progress-bars">
-          <div className="progress-bar hour-progress">
-            <div className="label">Day</div>
-            <div className="bar">
-              <div className="filled" style={{ width: hourProgress * 100 + "%" }} />
-            </div>
-            <div className="details">
-              <div className="value">{(hourProgress * 24).toFixed(1)}h</div>
-              <div className="percentage">{(hourProgress * 100).toFixed(4)}%</div>
-            </div>
-          </div>
-          <div className="progress-bar day-progress">
-            <div className="label">Month</div>
-            <div className="bar">
-              <div className="filled" style={{ width: monthProgress * 100 + "%" }} />
-            </div>
-            <div className="details">
-              <div className="value">{new Date().getDate()}day</div>
-              <div className="percentage">{(monthProgress * 100).toFixed(2)}%</div>
-            </div>
-          </div>
-          <div className="progress-bar year-progress">
-            <div className="label">YEAR</div>
-            <div className="bar">
-              <div className="filled" style={{ width: yearProgress * 100 + "%" }} />
-            </div>
-            <div className="details">
-              <div className="value">{(yearProgress * 365).toFixed(2)} days</div>
-              <div className="percentage">{(yearProgress * 100).toFixed(2)}%</div>
-            </div>
-          </div>
-        </div>
+        <ProgressBar />
         <div>
           <label htmlFor="days">Last n days:</label>
           <input type="number" id="days" value={dailyDays} onChange={handlDailyDaysChange} />
         </div>
-
         {renderDailyCumu()}
         <Log dailyLogs={dailyLogs} />
       </div>
@@ -406,18 +343,10 @@ function App() {
 
         {renderWorkTimeChart()}
         <div className="cumulative-time-chart">{renderCumulativeTimeChart()}</div>
-
         {renderTaskPercentageChart()}
       </div>
     </div>
   )
-}
-
-function dayOfYear(date) {
-  const start = new Date(date.getFullYear(), 0, 0)
-  const diff = date - start
-  const oneDay = 1000 * 60 * 60 * 24
-  return Math.floor(diff / oneDay)
 }
 
 export default App
