@@ -12,7 +12,7 @@ const Log = ({ dailyLogs }) => {
     timeString += minutes.toString().padStart(2, "0") + ":"
     timeString += seconds.toString().padStart(2, "0")
 
-    if (minutes >= 25) {
+    if (minutes >= 20) {
       timeString += " 🍅"
     }
 
